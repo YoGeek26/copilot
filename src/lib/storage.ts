@@ -1,5 +1,5 @@
 // Simulated database using localStorage for Bolt.diy
-import { User, Post, Review, ReviewResponse, Client, Stats, Subscription } from '../types';
+import { User, Post, Review, ReviewResponse, Client, Stats, Subscription, Promotion, MonthlyReport, Badge, Campaign, CalendarEvent } from '../types';
 
 class LocalStorage {
   private getItem<T>(key: string): T[] {
@@ -54,6 +54,12 @@ class LocalStorage {
       posts[index] = { ...posts[index], ...updates };
       this.setItem('posts', posts);
     }
+  }
+
+  deletePost(postId: string): void {
+    const posts = this.getPosts();
+    const filtered = posts.filter(p => p.id !== postId);
+    this.setItem('posts', filtered);
   }
 
   // Reviews
@@ -127,6 +133,93 @@ class LocalStorage {
       subscriptions.push(subscription);
     }
     this.setItem('subscriptions', subscriptions);
+  }
+
+  // V3: Promotions
+  getPromotions(userId: string): Promotion[] {
+    const promotions = this.getItem<Promotion>('promotions');
+    return promotions.filter(p => p.userId === userId);
+  }
+
+  createPromotion(promotion: Promotion): void {
+    const promotions = this.getItem<Promotion>('promotions');
+    promotions.push(promotion);
+    this.setItem('promotions', promotions);
+  }
+
+  updatePromotion(promotionId: string, updates: Partial<Promotion>): void {
+    const promotions = this.getItem<Promotion>('promotions');
+    const index = promotions.findIndex(p => p.id === promotionId);
+    if (index !== -1) {
+      promotions[index] = { ...promotions[index], ...updates };
+      this.setItem('promotions', promotions);
+    }
+  }
+
+  // V3: Monthly Reports
+  getMonthlyReports(userId: string): MonthlyReport[] {
+    const reports = this.getItem<MonthlyReport>('monthlyReports');
+    return reports.filter(r => r.userId === userId);
+  }
+
+  createMonthlyReport(report: MonthlyReport): void {
+    const reports = this.getItem<MonthlyReport>('monthlyReports');
+    reports.push(report);
+    this.setItem('monthlyReports', reports);
+  }
+
+  getMonthlyReport(userId: string, month: string): MonthlyReport | undefined {
+    const reports = this.getMonthlyReports(userId);
+    return reports.find(r => r.month === month);
+  }
+
+  // V3: Badges
+  getBadges(userId: string): Badge[] {
+    const badges = this.getItem<Badge>('badges');
+    return badges.filter(b => b.userId === userId);
+  }
+
+  createBadge(badge: Badge): void {
+    const badges = this.getItem<Badge>('badges');
+    // Éviter les doublons
+    const exists = badges.some(b => b.userId === badge.userId && b.type === badge.type);
+    if (!exists) {
+      badges.push(badge);
+      this.setItem('badges', badges);
+    }
+  }
+
+  // V3: Campaigns
+  getCampaigns(userId: string): Campaign[] {
+    const campaigns = this.getItem<Campaign>('campaigns');
+    return campaigns.filter(c => c.userId === userId);
+  }
+
+  createCampaign(campaign: Campaign): void {
+    const campaigns = this.getItem<Campaign>('campaigns');
+    campaigns.push(campaign);
+    this.setItem('campaigns', campaigns);
+  }
+
+  updateCampaign(campaignId: string, updates: Partial<Campaign>): void {
+    const campaigns = this.getItem<Campaign>('campaigns');
+    const index = campaigns.findIndex(c => c.id === campaignId);
+    if (index !== -1) {
+      campaigns[index] = { ...campaigns[index], ...updates };
+      this.setItem('campaigns', campaigns);
+    }
+  }
+
+  // V3: Calendar Events
+  getCalendarEvents(userId: string): CalendarEvent[] {
+    const events = this.getItem<CalendarEvent>('calendarEvents');
+    return events.filter(e => e.userId === userId);
+  }
+
+  createCalendarEvent(event: CalendarEvent): void {
+    const events = this.getItem<CalendarEvent>('calendarEvents');
+    events.push(event);
+    this.setItem('calendarEvents', events);
   }
 
   // Session

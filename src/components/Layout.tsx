@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, FileText, Star, Users, Settings, LogOut, Menu, X } from 'lucide-react';
+import { Home, FileText, Star, Users, Settings, LogOut, Menu, X, Tag, FileBarChart, Calendar, Megaphone, Award } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { badgeService } from '../lib/badges';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,6 +13,17 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [badges, setBadges] = React.useState<number>(0);
+
+  React.useEffect(() => {
+    if (user) {
+      // Vérifier les badges
+      badgeService.checkAndAwardBadges(user.id).then(newBadges => {
+        const allBadges = badgeService.getUserBadges(user.id);
+        setBadges(allBadges.length);
+      });
+    }
+  }, [user, location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -23,6 +35,10 @@ export function Layout({ children }: LayoutProps) {
     { name: 'Publications', href: '/posts', icon: FileText },
     { name: 'Avis clients', href: '/reviews', icon: Star },
     { name: 'Base clients', href: '/clients', icon: Users },
+    { name: 'Promotions', href: '/promotions', icon: Tag, isNew: true },
+    { name: 'Rapports', href: '/reports', icon: FileBarChart, isNew: true },
+    { name: 'Calendrier', href: '/calendar', icon: Calendar, isNew: true },
+    { name: 'Campagnes', href: '/campaigns', icon: Megaphone, isNew: true },
     { name: 'Paramètres', href: '/settings', icon: Settings },
   ];
 
@@ -41,7 +57,7 @@ export function Layout({ children }: LayoutProps) {
               <X className="h-6 w-6" />
             </button>
           </div>
-          <div className="flex-1 space-y-1 px-3 py-4">
+          <div className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
@@ -56,12 +72,23 @@ export function Layout({ children }: LayoutProps) {
                   }`}
                 >
                   <item.icon className="h-5 w-5" />
-                  {item.name}
+                  <span className="flex-1">{item.name}</span>
+                  {item.isNew && (
+                    <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                      Nouveau
+                    </span>
+                  )}
                 </Link>
               );
             })}
           </div>
           <div className="border-t p-4">
+            {badges > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 mb-2 bg-purple-50 rounded-lg">
+                <Award className="h-5 w-5 text-purple-600" />
+                <span className="text-sm font-medium text-purple-900">{badges} badges obtenus</span>
+              </div>
+            )}
             <button
               onClick={handleLogout}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
@@ -79,7 +106,7 @@ export function Layout({ children }: LayoutProps) {
           <div className="flex h-16 items-center px-6 border-b">
             <h1 className="text-xl font-bold text-gray-900">Mon Copilote Digital</h1>
           </div>
-          <div className="flex-1 space-y-1 px-3 py-4">
+          <div className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
@@ -93,7 +120,12 @@ export function Layout({ children }: LayoutProps) {
                   }`}
                 >
                   <item.icon className="h-5 w-5" />
-                  {item.name}
+                  <span className="flex-1">{item.name}</span>
+                  {item.isNew && (
+                    <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                      Nouveau
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -102,6 +134,12 @@ export function Layout({ children }: LayoutProps) {
             <div className="mb-4 px-3">
               <p className="text-sm font-medium text-gray-900">{user?.businessName}</p>
               <p className="text-xs text-gray-500">{user?.email}</p>
+              {badges > 0 && (
+                <div className="flex items-center gap-1 mt-2">
+                  <Award className="h-4 w-4 text-purple-600" />
+                  <span className="text-xs font-medium text-purple-600">{badges} badges</span>
+                </div>
+              )}
             </div>
             <button
               onClick={handleLogout}

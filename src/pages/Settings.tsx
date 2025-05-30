@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { storage } from '../lib/storage';
-import { Palette, Type, Building, CreditCard, CheckCircle } from 'lucide-react';
+import { badgeService } from '../lib/badges';
+import { Badge } from '../types';
+import { Palette, Type, Building, CreditCard, CheckCircle, Award, Trophy } from 'lucide-react';
 
 export function Settings() {
   const { user, updateUser } = useAuth();
@@ -13,7 +15,15 @@ export function Settings() {
     logo: user?.logo || ''
   });
   const [saved, setSaved] = useState(false);
+  const [badges, setBadges] = useState<Badge[]>([]);
   const subscription = user ? storage.getSubscription(user.id) : null;
+
+  React.useEffect(() => {
+    if (user) {
+      const userBadges = badgeService.getUserBadges(user.id);
+      setBadges(userBadges);
+    }
+  }, [user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,6 +152,39 @@ export function Settings() {
             )}
           </div>
         </form>
+      </div>
+
+      {/* Badges Section */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">
+          <Trophy className="inline h-5 w-5 mr-2" />
+          Vos badges de performance
+        </h2>
+        
+        {badges.length === 0 ? (
+          <div className="text-center py-8">
+            <Award className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600">Aucun badge obtenu pour le moment</p>
+            <p className="text-sm text-gray-500 mt-1">Continuez à utiliser l'application pour débloquer des badges !</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {badges.map((badge) => (
+              <div key={badge.id} className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{badge.icon}</span>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{badge.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{badge.description}</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Obtenu le {new Date(badge.earnedAt).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Subscription Plans */}

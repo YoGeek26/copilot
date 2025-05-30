@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Star, Users, TrendingUp, ArrowRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { FileText, Star, Users, TrendingUp, ArrowRight, CheckCircle, Clock, AlertCircle, Tag, Calendar, Trophy } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { storage } from '../lib/storage';
-import { Post, Review, ReviewResponse, Stats } from '../types';
+import { badgeService } from '../lib/badges';
+import { Post, Review, ReviewResponse, Stats, Badge } from '../types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -14,6 +15,8 @@ export function Dashboard() {
   const [reviewResponses, setReviewResponses] = useState<ReviewResponse[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [clients, setClients] = useState(0);
+  const [promotions, setPromotions] = useState(0);
+  const [newBadges, setNewBadges] = useState<Badge[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -22,11 +25,13 @@ export function Dashboard() {
       const userReviews = storage.getReviews(user.id);
       const allResponses = storage.getReviewResponses();
       const userClients = storage.getClients(user.id);
+      const userPromotions = storage.getPromotions(user.id);
 
       setPosts(userPosts);
       setReviews(userReviews);
       setReviewResponses(allResponses);
       setClients(userClients.length);
+      setPromotions(userPromotions.filter(p => p.status === 'active').length);
 
       // Calculate stats
       const weekStats: Stats = {
@@ -41,6 +46,12 @@ export function Dashboard() {
         date: new Date()
       };
       setStats(weekStats);
+      storage.createStats(weekStats);
+
+      // Check for new badges
+      badgeService.checkAndAwardBadges(user.id).then(badges => {
+        setNewBadges(badges);
+      });
     }
   }, [user]);
 
@@ -72,11 +83,11 @@ export function Dashboard() {
       link: '/clients'
     },
     {
-      title: 'Vues cette semaine',
-      value: stats?.views || 0,
-      icon: TrendingUp,
+      title: 'Promos actives',
+      value: promotions,
+      icon: Tag,
       color: 'bg-purple-500',
-      link: '#'
+      link: '/promotions'
     }
   ];
 
@@ -88,6 +99,21 @@ export function Dashboard() {
         </h1>
         <p className="text-gray-600 mt-1">Voici un aperçu de votre activité cette semaine</p>
       </div>
+
+      {/* New badges notification */}
+      {newBadges.length > 0 && (
+        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl p-4 text-white">
+          <div className="flex items-center gap-3">
+            <Trophy className="h-8 w-8" />
+            <div>
+              <h3 className="font-semibold">Félicitations ! Vous avez débloqué {newBadges.length} nouveau{newBadges.length > 1 ? 'x' : ''} badge{newBadges.length > 1 ? 's' : ''} !</h3>
+              <p className="text-sm text-white/90 mt-1">
+                {newBadges.map(b => b.title).join(', ')}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -207,7 +233,7 @@ export function Dashboard() {
       {/* Quick Actions */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
         <h2 className="text-xl font-semibold mb-4">Actions rapides</h2>
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
             to="/posts"
             className="bg-white/20 backdrop-blur rounded-lg p-4 text-center hover:bg-white/30 transition-colors"
@@ -216,18 +242,25 @@ export function Dashboard() {
             <p className="font-medium">Créer un post</p>
           </Link>
           <Link
-            to="/clients"
+            to="/promotions"
             className="bg-white/20 backdrop-blur rounded-lg p-4 text-center hover:bg-white/30 transition-colors"
           >
-            <Users className="h-8 w-8 mx-auto mb-2" />
-            <p className="font-medium">Ajouter un client</p>
+            <Tag className="h-8 w-8 mx-auto mb-2" />
+            <p className="font-medium">Lancer une promo</p>
           </Link>
           <Link
-            to="/settings"
+            to="/calendar"
             className="bg-white/20 backdrop-blur rounded-lg p-4 text-center hover:bg-white/30 transition-colors"
           >
-            <AlertCircle className="h-8 w-8 mx-auto mb-2" />
-            <p className="font-medium">Configurer l'IA</p>
+            <Calendar className="h-8 w-8 mx-auto mb-2" />
+            <p className="font-medium">Voir le calendrier</p>
+          </Link>
+          <Link
+            to="/reports"
+            className="bg-white/20 backdrop-blur rounded-lg p-4 text-center hover:bg-white/30 transition-colors"
+          >
+            <TrendingUp className="h-8 w-8 mx-auto mb-2" />
+            <p className="font-medium">Consulter rapports</p>
           </Link>
         </div>
       </div>

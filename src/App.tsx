@@ -9,6 +9,10 @@ import { Posts } from './pages/Posts';
 import { Reviews } from './pages/Reviews';
 import { Clients } from './pages/Clients';
 import { Settings } from './pages/Settings';
+import { Promotions } from './pages/Promotions';
+import { Reports } from './pages/Reports';
+import { Calendar } from './pages/Calendar';
+import { Campaigns } from './pages/Campaigns';
 import { storage } from './lib/storage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -56,6 +60,10 @@ function AppContent() {
                 <Route path="/posts" element={<Posts />} />
                 <Route path="/reviews" element={<Reviews />} />
                 <Route path="/clients" element={<Clients />} />
+                <Route path="/promotions" element={<Promotions />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/calendar" element={<Calendar />} />
+                <Route path="/campaigns" element={<Campaigns />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/" element={<Navigate to="/dashboard" />} />
               </Routes>

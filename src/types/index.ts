@@ -16,9 +16,12 @@ export interface Post {
   title: string;
   content: string;
   visualSuggestion?: string;
+  visualUrl?: string;
   status: 'draft' | 'published' | 'scheduled';
   publishDate: Date;
+  plannedDate?: Date; // Pour le calendrier éditorial
   channel: 'google' | 'facebook' | 'both';
+  campaignId?: string; // Lien vers une campagne
   createdAt: Date;
 }
 
@@ -63,4 +66,86 @@ export interface Subscription {
   plan: 'free' | 'essential' | 'pro';
   status: 'active' | 'cancelled';
   expiresAt?: Date;
+}
+
+// Nouvelles interfaces V3
+
+export interface Promotion {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  discount: string; // Ex: "-20%", "2+1 gratuit"
+  startDate: Date;
+  endDate: Date;
+  posts: {
+    google?: string;
+    facebook?: string;
+  };
+  visualUrl?: string;
+  visualSuggestion: string;
+  status: 'draft' | 'active' | 'ended';
+  createdAt: Date;
+}
+
+export interface MonthlyReport {
+  id: string;
+  userId: string;
+  month: string; // Format: "2024-01"
+  metrics: {
+    views: number;
+    reviewsReceived: number;
+    reviewsAnswered: number;
+    postsPublished: number;
+    avgRating: number;
+    clientsAdded: number;
+  };
+  summary: string;
+  recommendations: string[];
+  htmlContent?: string;
+  pdfUrl?: string;
+  createdAt: Date;
+}
+
+export interface Badge {
+  id: string;
+  userId: string;
+  type: 'regular_poster' | 'review_master' | 'top_rated' | 'engagement_star' | 'promo_expert';
+  title: string;
+  description: string;
+  icon: string; // Emoji ou nom d'icône
+  earnedAt: Date;
+}
+
+export interface Campaign {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  posts: {
+    google?: Post;
+    facebook?: Post;
+    story?: {
+      content: string;
+      visualUrl?: string;
+    };
+    banner?: {
+      title: string;
+      content: string;
+      visualUrl?: string;
+    };
+  };
+  status: 'draft' | 'active' | 'completed';
+  createdAt: Date;
+}
+
+export interface CalendarEvent {
+  id: string;
+  userId: string;
+  title: string;
+  type: 'post' | 'promotion' | 'event' | 'holiday';
+  date: Date;
+  description?: string;
+  postId?: string;
+  promotionId?: string;
 }
